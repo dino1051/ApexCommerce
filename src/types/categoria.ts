@@ -1,9 +1,7 @@
-import type { FechaAPI } from "./api";
-
 export interface Categoria {
   id: number;
   nombre: string;
-  creadoEn: FechaAPI;
+  creadoEn: string;
 }
 
 export interface CrearCategoriaDTO {

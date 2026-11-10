@@ -2,14 +2,15 @@ import { create } from "zustand";
 import { articulosService } from "../services/articulos";
 
 import type {
-  ArticuloResumen,
+  ArticuloAdmin,
   CrearArticuloDTO,
   ActualizarArticuloDTO,
 } from "../types/articulo";
 
 interface ArticulosState {
-  articulos: ArticuloResumen[];
+  articulos: ArticuloAdmin[];
   cargando: boolean;
+  guardando: boolean;
   error: string | null;
 
   cargarArticulos: () => Promise<void>;
@@ -24,25 +25,25 @@ interface ArticulosState {
 export const useArticulosStore = create<ArticulosState>()((set, get) => ({
   articulos: [],
   cargando: false,
+  guardando: false,
   error: null,
 
   cargarArticulos: async () => {
     set({ cargando: true, error: null });
 
     try {
-      const articulos = await articulosService.getTodos();
+      const articulos = await articulosService.getTodosAdmin();
       set({ articulos });
-    } catch {
-      set({
-        error: "No fue posible cargar los artículos.",
-      });
+    } catch (error) {
+      set({ error: "No fue posible cargar los artículos." });
+      throw error;
     } finally {
       set({ cargando: false });
     }
   },
 
   crearArticulo: async (datos) => {
-    set({ error: null });
+    set({ guardando: true, error: null });
 
     try {
       await articulosService.crear(datos);
@@ -50,11 +51,13 @@ export const useArticulosStore = create<ArticulosState>()((set, get) => ({
     } catch (error) {
       set({ error: "No fue posible crear el artículo." });
       throw error;
+    } finally {
+      set({ guardando: false });
     }
   },
 
   actualizarArticulo: async (id, datos) => {
-    set({ error: null });
+    set({ guardando: true, error: null });
 
     try {
       await articulosService.actualizar(id, datos);
@@ -62,11 +65,13 @@ export const useArticulosStore = create<ArticulosState>()((set, get) => ({
     } catch (error) {
       set({ error: "No fue posible actualizar el artículo." });
       throw error;
+    } finally {
+      set({ guardando: false });
     }
   },
 
   eliminarArticulo: async (id) => {
-    set({ error: null });
+    set({ guardando: true, error: null });
 
     try {
       await articulosService.eliminar(id);
@@ -74,6 +79,8 @@ export const useArticulosStore = create<ArticulosState>()((set, get) => ({
     } catch (error) {
       set({ error: "No fue posible eliminar el artículo." });
       throw error;
+    } finally {
+      set({ guardando: false });
     }
   },
 }));

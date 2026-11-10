@@ -1,23 +1,23 @@
 import type { DecimalAPI, FechaAPI } from "./api";
+import type { Categoria } from "./categoria";
 
-// GET /api/articulos
-export interface ArticuloResumen {
+// Datos públicos
+export interface ArticuloPublico {
   id: number;
-  nombre: string;
-  stock: number;
-}
-
-// GET /api/articulos/:id
-export interface ArticuloDetalle {
   nombre: string;
   descripcion: string | null;
   stock: number;
   precioVenta: DecimalAPI;
+  id_categoria: number;
+  categoria: Pick<Categoria, "id" | "nombre">;
+}
+
+// Datos exclusivos de ADMIN
+export interface ArticuloAdmin extends ArticuloPublico {
   precioCompra: DecimalAPI;
   creadoEn: FechaAPI;
 }
 
-// POST /api/articulos
 export interface CrearArticuloDTO {
   nombre: string;
   descripcion?: string;
@@ -27,5 +27,4 @@ export interface CrearArticuloDTO {
   id_categoria: number;
 }
 
-// PATCH /api/articulos/:id
 export type ActualizarArticuloDTO = Partial<CrearArticuloDTO>;

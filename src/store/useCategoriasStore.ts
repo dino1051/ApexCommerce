@@ -10,6 +10,7 @@ import type {
 interface CategoriasState {
   categorias: Categoria[];
   cargando: boolean;
+  guardando: boolean;
   error: string | null;
 
   cargarCategorias: () => Promise<void>;
@@ -24,6 +25,7 @@ interface CategoriasState {
 export const useCategoriasStore = create<CategoriasState>()((set, get) => ({
   categorias: [],
   cargando: false,
+  guardando: false,
   error: null,
 
   cargarCategorias: async () => {

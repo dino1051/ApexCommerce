@@ -1,606 +1,367 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 
-type TipoRuta = "admin" | "cashier" | "customer" | null;
+import {
+  ArrowLeft,
+  ArrowRight,
+  ShieldCheck,
+  Shield,
+  LockKeyhole,
+  Mail,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  AlertCircle,
+  X,
+  UserPlus,
+  ChevronRight,
+  Store,
+  Monitor,
+  Settings,
+  Route,
+  LoaderCircle,
+} from "lucide-react";
+
+import { useAuthStore } from "../store/useAuthStore";
+import type { LoginDTO, Rol } from "../types/auth";
+
+const rutasPorRol: Record<Rol, string> = {
+  ADMIN: "/admin/productos",
+  CAJERO: "/caja",
+  CLIENTEWEB: "/tienda",
+};
+
+const roles = [
+  {
+    rol: "ADMIN",
+    nombre: "Administrador",
+    ruta: "/admin/productos",
+    descripcion: "Catálogo, usuarios, pedidos, caja y reportes.",
+    Icono: Settings,
+  },
+  {
+    rol: "CAJERO",
+    nombre: "Cajero",
+    ruta: "/caja",
+    descripcion: "POS, ventas, pedidos e historial.",
+    Icono: Monitor,
+  },
+  {
+    rol: "CLIENTEWEB",
+    nombre: "Cliente Web",
+    ruta: "/tienda",
+    descripcion: "Catálogo, carrito, checkout y pedidos.",
+    Icono: Store,
+  },
+] as const;
 
 export default function LoginPage() {
   const navigate = useNavigate();
 
-  const [identity, setIdentity] = useState("");
-  const [password, setPassword] = useState("");
-  const [mostrarPassword, setMostrarPassword] = useState(false);
-  const [recordarSesion, setRecordarSesion] = useState(false);
+  const [mostrarError, setMostrarError] = useState(true);
 
-  const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [mensaje, setMensaje] = useState<string | null>(null);
+  const token = useAuthStore((s) => s.token);
+  const usuario = useAuthStore((s) => s.usuario);
+  const iniciarSesion = useAuthStore((s) => s.iniciarSesion);
+  const cargando = useAuthStore((s) => s.cargando);
+  const error = useAuthStore((s) => s.error);
+  const limpiarError = useAuthStore((s) => s.limpiarError);
 
-  const detectarRuta = (): TipoRuta => {
-    const valor = identity.toLowerCase().trim();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginDTO>({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-    if (!valor) return null;
+  // Evita mostrar el login a usuarios ya autenticados.
+  if (token && usuario) {
+    return <Navigate to={rutasPorRol[usuario.rol] ?? "/sin-acceso"} replace />;
+  }
 
-    if (valor.includes("admin")) {
-      return "admin";
-    }
-
-    if (
-      valor.includes("cajer") ||
-      valor.includes("pos") ||
-      valor.includes("terminal")
-    ) {
-      return "cashier";
-    }
-
-    if (valor.includes("@")) {
-      return "customer";
-    }
-
-    return null;
-  };
-
-  const rutaDetectada = detectarRuta();
-
-  const getRutaTexto = () => {
-    switch (rutaDetectada) {
-      case "admin":
-        return "Detectado: Redirigiendo a /admin/dashboard";
-
-      case "cashier":
-        return "Detectado: Redirigiendo a /cajero/pos";
-
-      case "customer":
-        return "Detectado: Redirigiendo a /tienda";
-
-      default:
-        return "Esperando credencial";
-    }
-  };
-
-  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    setError(null);
-    setMensaje(null);
-
-    if (!identity.trim() || !password) {
-      setError("Por favor ingresa tanto tu correo/usuario como tu contraseña.");
-      return;
-    }
-
+  const manejarLogin = async (datos: LoginDTO) => {
     try {
-      setCargando(true);
+      setMostrarError(true);
 
-      /*
-       * Aquí posteriormente conectaremos:
-       *
-       * const respuesta = await authService.login({
-       *   identity,
-       *   password,
-       * });
-       *
-       * useAuthStore.getState().iniciarSesion(...)
-       *
-       * El rol recibido por la API será el que determine
-       * la redirección real.
-       */
+      await iniciarSesion(datos);
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const usuarioAutenticado = useAuthStore.getState().usuario;
 
-      const ruta = detectarRuta();
+      if (!usuarioAutenticado) {
+        return;
+      }
 
-      setMensaje("Sesión validada con éxito.");
+      const destino = rutasPorRol[usuarioAutenticado.rol];
 
-      setTimeout(() => {
-        if (ruta === "admin") {
-          navigate("/admin/dashboard");
-        } else if (ruta === "cashier") {
-          navigate("/cajero/pos");
-        } else {
-          navigate("/tienda");
-        }
-      }, 500);
+      navigate(destino ?? "/sin-acceso", {
+        replace: true,
+      });
     } catch {
-      setError("Credenciales no reconocidas o cuenta temporalmente bloqueada.");
-    } finally {
-      setCargando(false);
+      // Zustand registra el error.
     }
-  };
-
-  const handleForgotPassword = () => {
-    setError(null);
-    setMensaje(
-      identity.trim()
-        ? `Si existe una cuenta asociada a ${identity.trim()}, recibirás instrucciones para restablecer tu contraseña.`
-        : "Ingresa primero tu correo o usuario para solicitar la recuperación.",
-    );
   };
 
   return (
-    <div className="min-h-screen bg-[#faf8ff] text-[#131b2e] flex flex-col">
+    <div className="flex min-h-screen flex-col bg-canvas text-ink">
       {/* HEADER */}
-      <header className="w-full bg-white/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] fixed top-0 left-0 right-0 z-50">
-        <div className="h-16 max-w-7xl mx-auto px-6 flex items-center justify-between">
+      <header className="w-full border-b border-border-ui bg-surface">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
           <Link
             to="/tienda"
-            className="flex items-center gap-1 text-[#59413e] hover:text-[#131b2e] transition-colors"
+            className="flex items-center gap-2 text-sm font-semibold text-ink-secondary transition-colors hover:text-primary"
           >
-            <span className="material-symbols-outlined text-[18px]">
-              arrow_back
-            </span>
-
-            <span className="text-sm font-semibold">Tienda Pública</span>
+            <ArrowLeft size={18} />
+            <span className="hidden sm:inline">Tienda Pública</span>
           </Link>
 
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#991b1b] flex items-center justify-center">
-              <span className="material-symbols-outlined text-white text-[18px]">
-                token
-              </span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
+              <Store size={19} />
             </div>
 
             <div className="flex items-baseline gap-1">
-              <span className="text-xl font-bold tracking-tight">APEX</span>
+              <span className="font-heading text-xl font-extrabold tracking-tight">
+                APEX
+              </span>
 
-              <span className="text-xs text-[#760009] font-bold tracking-wider uppercase">
+              <span className="text-xs font-bold uppercase tracking-wider text-primary">
                 Commerce
               </span>
             </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => {
-                setMensaje(
-                  "Para recibir ayuda con el acceso, contacta al soporte.",
-                );
-                setError(null);
-              }}
-              className="flex items-center gap-1 text-[#59413e] hover:text-[#131b2e] transition-colors"
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                help_outline
-              </span>
-
-              <span className="hidden sm:inline text-xs font-semibold">
-                Soporte y Ayuda
-              </span>
-            </button>
           </div>
         </div>
       </header>
 
       {/* CONTENIDO */}
-      <main className="w-full pt-16 flex-1 flex flex-col items-center justify-center p-6">
-        <div className="flex flex-col w-full max-w-6xl mx-auto">
-          {/* META */}
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-5">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#991b1b] text-white text-[11px] font-semibold uppercase tracking-wider shadow-sm">
-                <span className="material-symbols-outlined text-[14px]">
-                  verified_user
-                </span>
-                Acceso Unificado
-              </span>
-
-              <span className="hidden sm:inline-flex items-center gap-1 text-[#59413e] text-[11px]">
-                <span className="w-2 h-2 rounded-full bg-[#005b27]" />
-                Nodo Autenticación Activo
-              </span>
-            </div>
-
-            <span className="text-[11px] text-[#59413e] flex items-center gap-1">
-              <span className="material-symbols-outlined text-[15px] text-[#005b27]">
-                shield
-              </span>
-              TLS Seguro
-            </span>
-          </div>
-
-          {/* GRID PRINCIPAL */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <main className="flex w-full flex-1 items-center justify-center px-4 py-8 sm:px-6">
+        <div className="mx-auto w-full max-w-6xl">
+          <div className="flex w-full justify-center">
             {/* FORMULARIO */}
-            <div className="lg:col-span-7 bg-white rounded-xl shadow-xl p-6 sm:p-8 flex flex-col relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#991b1b]" />
+            <section className="relative flex w-full max-w-xl flex-col overflow-hidden rounded-xl border border-border-ui bg-surface p-6 shadow-sm sm:p-8">
+              <div className="absolute inset-x-0 top-0 h-1.5 bg-primary" />
 
               <div className="mb-6 pt-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[11px] text-[#760009] uppercase font-bold tracking-widest">
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
                     Acceso al sistema
-                  </span>
-
-                  <span className="text-[#59413e] opacity-40">•</span>
-
-                  <span className="text-[11px] text-[#59413e]">
-                    Acceso por rol
                   </span>
                 </div>
 
-                <h1 className="text-3xl font-extrabold tracking-tight">
-                  Iniciar Sesión
+                <h1 className="font-heading text-3xl font-extrabold tracking-tight">
+                  Iniciar sesión
                 </h1>
 
-                <p className="text-sm text-[#59413e] mt-1">
-                  Ingresa tus credenciales para acceder al portal
-                  correspondiente a tu rol.
+                <p className="mt-2 text-sm text-ink-secondary">
+                  Ingresa tus credenciales para acceder al portal APEX
                 </p>
               </div>
 
-              {/* RUTAS */}
-              <div className="bg-[#f2f3ff] rounded-lg p-3 mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[15px] text-[#760009]">
-                      route
-                    </span>
-                    Enrutamiento por rol
-                  </span>
-
-                  <span className="text-[11px] text-[#760009] font-semibold">
-                    {getRutaTexto()}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-1 text-center">
-                  <RutaBadge
-                    activa={rutaDetectada === "admin"}
-                    icono="admin_panel_settings"
-                    nombre="Admin"
-                    ruta="/admin/dashboard"
-                  />
-
-                  <RutaBadge
-                    activa={rutaDetectada === "cashier"}
-                    icono="point_of_sale"
-                    nombre="Cajero"
-                    ruta="/cajero/pos"
-                  />
-
-                  <RutaBadge
-                    activa={rutaDetectada === "customer"}
-                    icono="storefront"
-                    nombre="Cliente"
-                    ruta="/tienda"
-                  />
-                </div>
-              </div>
-
-              {/* MENSAJES */}
-              {error && (
-                <div className="mb-4 p-4 rounded-lg bg-[#ffdad6] text-[#93000a] flex items-start gap-2">
-                  <span className="material-symbols-outlined text-[20px]">
-                    error
-                  </span>
+              {/* ERROR DEL BACKEND */}
+              {error && mostrarError && (
+                <div
+                  role="alert"
+                  className="mb-5 flex items-start gap-3 rounded-lg border border-red-200 bg-danger-light p-4 text-red-800"
+                >
+                  <AlertCircle size={20} className="shrink-0" />
 
                   <div className="flex-1">
-                    <p className="text-sm font-bold">Validación requerida</p>
+                    <p className="text-sm font-bold">
+                      No fue posible iniciar sesión
+                    </p>
 
-                    <p className="text-xs mt-0.5">{error}</p>
+                    <p className="mt-1 text-xs">{error}</p>
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => setError(null)}
-                    className="hover:opacity-70"
+                    onClick={() => {
+                      limpiarError();
+                      setMostrarError(false);
+                    }}
+                    aria-label="Cerrar mensaje de error"
+                    className="rounded p-1 hover:bg-red-100"
                   >
-                    <span className="material-symbols-outlined text-[16px]">
-                      close
-                    </span>
+                    <X size={17} />
                   </button>
                 </div>
               )}
 
-              {mensaje && (
-                <div className="mb-4 p-4 rounded-lg bg-[#95f8a7] text-[#005323] flex items-start gap-2">
-                  <span className="material-symbols-outlined text-[20px]">
-                    check_circle
-                  </span>
-
-                  <div className="flex-1">
-                    <p className="text-sm font-bold">Sesión validada</p>
-
-                    <p className="text-xs mt-0.5">{mensaje}</p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setMensaje(null)}
-                    className="hover:opacity-70"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">
-                      close
-                    </span>
-                  </button>
-                </div>
-              )}
-
-              {/* FORM */}
-              <form onSubmit={handleLogin} className="flex flex-col gap-4">
-                {/* USUARIO */}
+              {/* FORMULARIO */}
+              <form
+                onSubmit={handleSubmit(manejarLogin)}
+                className="flex flex-col gap-5"
+                noValidate
+              >
+                {/* EMAIL */}
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex justify-between items-center">
-                    <label
-                      htmlFor="identity"
-                      className="text-sm font-semibold flex items-center gap-1.5"
-                    >
-                      Correo electrónico o Usuario
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="email" className="text-sm font-semibold">
+                      Correo electrónico
                     </label>
 
-                    <span className="text-[11px] text-[#59413e]">
-                      {identity ? "Detectado" : "Requerido"}
+                    <span className="text-[11px] text-ink-secondary">
+                      Requerido
                     </span>
                   </div>
 
                   <div className="relative flex items-center">
-                    <span className="material-symbols-outlined absolute left-3.5 text-[#59413e] pointer-events-none text-[20px]">
-                      alternate_email
-                    </span>
+                    <Mail
+                      size={19}
+                      className="pointer-events-none absolute left-3.5 text-ink-secondary"
+                    />
 
                     <input
-                      id="identity"
-                      name="identity"
-                      type="text"
+                      id="email"
+                      type="email"
                       autoComplete="username"
-                      value={identity}
-                      onChange={(e) => {
-                        setIdentity(e.target.value);
-                        setError(null);
-                      }}
-                      placeholder="ej. admin@apexcommerce.com"
-                      required
-                      className="w-full h-11 pl-11 pr-4 bg-[#f2f3ff] rounded-lg text-sm outline-none transition-all focus:bg-white focus:shadow-md placeholder:text-[#59413e]/50"
+                      placeholder="admin@apexcommerce.com"
+                      aria-invalid={!!errors.email}
+                      {...register("email", {
+                        required: "El correo es obligatorio.",
+                        pattern: {
+                          value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                          message: "Ingresa un correo válido.",
+                        },
+                      })}
+                      className="
+                        h-11 w-full rounded-lg border
+                        border-border-ui bg-surface-muted
+                        pl-11 pr-4 text-sm text-ink
+                        outline-none transition-colors
+                        placeholder:text-ink-muted
+                        focus:border-primary focus:bg-white
+                      "
                     />
                   </div>
+
+                  {errors.email && (
+                    <p className="text-xs text-danger">
+                      {errors.email.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* PASSWORD */}
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex justify-between items-center">
-                    <label htmlFor="password" className="text-sm font-semibold">
-                      Contraseña
-                    </label>
-
-                    <button
-                      type="button"
-                      onClick={handleForgotPassword}
-                      className="text-[11px] text-[#760009] hover:underline font-semibold"
-                    >
-                      ¿Olvidaste tu contraseña?
-                    </button>
-                  </div>
+                  <label htmlFor="password" className="text-sm font-semibold">
+                    Contraseña
+                  </label>
 
                   <div className="relative flex items-center">
-                    <span className="material-symbols-outlined absolute left-3.5 text-[#59413e] pointer-events-none text-[20px]">
-                      lock
-                    </span>
+                    <LockKeyhole
+                      size={19}
+                      className="pointer-events-none absolute left-3.5 text-ink-secondary"
+                    />
 
                     <input
                       id="password"
-                      name="password"
-                      type={mostrarPassword ? "text" : "password"}
+                      type={"password"}
                       autoComplete="current-password"
-                      value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        setError(null);
-                      }}
                       placeholder="••••••••"
-                      required
-                      className="w-full h-11 pl-11 pr-11 bg-[#f2f3ff] rounded-lg text-sm outline-none transition-all focus:bg-white focus:shadow-md placeholder:text-[#59413e]/50"
+                      aria-invalid={!!errors.password}
+                      {...register("password", {
+                        required: "La contraseña es obligatoria.",
+                      })}
+                      className="
+                        h-11 w-full rounded-lg border
+                        border-border-ui bg-surface-muted
+                        pl-11 pr-11 text-sm text-ink
+                        outline-none transition-colors
+                        placeholder:text-ink-muted
+                        focus:border-primary focus:bg-white
+                      "
                     />
-
-                    <button
-                      type="button"
-                      aria-label={
-                        mostrarPassword
-                          ? "Ocultar contraseña"
-                          : "Mostrar contraseña"
-                      }
-                      onClick={() => setMostrarPassword((actual) => !actual)}
-                      className="absolute right-3.5 text-[#59413e] hover:text-[#131b2e] flex items-center justify-center p-1 rounded"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">
-                        {mostrarPassword ? "visibility_off" : "visibility"}
-                      </span>
-                    </button>
                   </div>
+
+                  {errors.password && (
+                    <p className="text-xs text-danger">
+                      {errors.password.message}
+                    </p>
+                  )}
                 </div>
 
-                {/* RECORDAR */}
-                <div className="flex items-center justify-between pt-1">
-                  <label className="flex items-center gap-2 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={recordarSesion}
-                      onChange={(e) => setRecordarSesion(e.target.checked)}
-                      className="w-4 h-4 accent-[#991b1b] cursor-pointer"
-                    />
-
-                    <span className="text-sm text-[#59413e]">
-                      Recordar sesión
-                    </span>
-                  </label>
-
-                  <span className="inline-flex items-center gap-1 text-[11px] text-[#59413e]">
-                    <span className="material-symbols-outlined text-[14px] text-[#005b27]">
-                      check_circle
-                    </span>
-                    Equipo confiable
-                  </span>
-                </div>
-
-                {/* BOTÓN */}
+                {/* SUBMIT */}
                 <button
                   type="submit"
                   disabled={cargando}
-                  className="w-full h-12 mt-2 bg-[#991b1b] hover:bg-[#760009] disabled:opacity-70 disabled:cursor-not-allowed text-white rounded-lg text-sm font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
+                  className="
+                    mt-1 flex h-12 w-full items-center
+                    justify-center gap-2 rounded-lg
+                    border border-primary-dark
+                    bg-primary text-sm font-bold text-white
+                    transition-all hover:bg-primary-hover
+                    active:scale-[0.98]
+                    disabled:cursor-not-allowed
+                    disabled:opacity-60
+                  "
                 >
                   {cargando ? (
                     <>
-                      <span className="animate-spin h-5 w-5 rounded-full border-2 border-white border-t-transparent" />
+                      <LoaderCircle size={19} className="animate-spin" />
                       Autenticando...
                     </>
                   ) : (
                     <>
-                      Iniciar Sesión
-                      <span className="material-symbols-outlined text-[20px]">
-                        arrow_forward
-                      </span>
+                      Iniciar sesión
+                      <ArrowRight size={19} />
                     </>
                   )}
                 </button>
               </form>
 
               {/* REGISTRO */}
-              <div className="mt-6 pt-4 bg-[#f2f3ff] rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-center sm:text-left">
-                  <div className="w-9 h-9 rounded-full bg-[#d5e0f8] flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[20px]">
-                      person_add
-                    </span>
+              <div className="mt-6 flex flex-col items-center justify-between gap-3 rounded-lg bg-surface-muted p-4 sm:flex-row">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-primary">
+                    <UserPlus size={20} />
                   </div>
 
                   <div>
                     <p className="text-xs font-bold">¿No tienes una cuenta?</p>
 
-                    <p className="text-xs text-[#59413e]">
-                      Regístrate como Cliente Web.
+                    <p className="mt-0.5 text-xs text-ink-secondary">
+                      Regístrate.
                     </p>
                   </div>
                 </div>
 
                 <Link
                   to="/registro"
-                  className="w-full sm:w-auto px-4 py-2 bg-white hover:bg-[#eaedff] rounded-lg text-xs font-bold text-center shadow-sm transition-colors flex items-center justify-center gap-1.5"
+                  className="
+                    flex w-full items-center justify-center
+                    gap-1.5 rounded-lg border border-border-ui
+                    bg-white px-4 py-2 text-xs font-bold
+                    transition-colors hover:bg-slate-50
+                    sm:w-auto
+                  "
                 >
-                  Crear Cuenta Cliente
-                  <span className="material-symbols-outlined text-[16px]">
-                    chevron_right
-                  </span>
+                  Crear cuenta cliente
+                  <ChevronRight size={16} />
                 </Link>
               </div>
-            </div>
-
-            {/* PANEL DERECHO */}
-            <div className="lg:col-span-5 flex flex-col gap-4">
-              <div className="bg-[#f2f3ff] rounded-xl p-5 shadow-sm">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#991b1b] text-white flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined">security</span>
-                  </div>
-
-                  <div>
-                    <h2 className="font-bold">Acceso seguro por rol</h2>
-
-                    <p className="text-sm text-[#59413e] mt-1">
-                      Cada cuenta es dirigida automáticamente al espacio
-                      correspondiente a sus permisos.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-5 shadow-sm">
-                <h2 className="font-bold mb-4">Experiencias disponibles</h2>
-
-                <div className="flex flex-col gap-3">
-                  <RolInfo
-                    icono="admin_panel_settings"
-                    titulo="Administrador"
-                    descripcion="Catálogo, usuarios, pedidos, caja y reportes."
-                  />
-
-                  <RolInfo
-                    icono="point_of_sale"
-                    titulo="Cajero"
-                    descripcion="POS, ventas, pedidos e historial."
-                  />
-
-                  <RolInfo
-                    icono="storefront"
-                    titulo="Cliente Web"
-                    descripcion="Catálogo, carrito, checkout y pedidos."
-                  />
-                </div>
-              </div>
-            </div>
+            </section>
           </div>
         </div>
       </main>
 
       {/* FOOTER */}
-      <footer className="w-full py-4 bg-[#f2f3ff]">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
-          <p className="text-xs text-[#59413e]">
-            © 2026 Apex Commerce Platform. Entorno seguro.
+      <footer className="border-t border-border-ui bg-surface-muted py-4">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-6 text-center sm:flex-row">
+          <p className="text-xs text-ink-secondary">
+            © 2026 Apex Commerce Platform
           </p>
 
-          <div className="flex items-center gap-4 text-[11px] text-[#59413e]">
-            <span className="flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px] text-[#005b27]">
-                lock
-              </span>
-              Conexión segura
-            </span>
-
-            <span>Privacidad y Términos</span>
-          </div>
+          <span className="flex items-center gap-1.5 text-xs text-ink-secondary">
+            <LockKeyhole size={14} className="text-success" />
+            Acceso autenticado mediante JWT
+          </span>
         </div>
       </footer>
-    </div>
-  );
-}
-
-/* --------------------------------
-   COMPONENTES AUXILIARES
---------------------------------- */
-
-interface RutaBadgeProps {
-  activa: boolean;
-  icono: string;
-  nombre: string;
-  ruta: string;
-}
-
-function RutaBadge({ activa, icono, nombre, ruta }: RutaBadgeProps) {
-  return (
-    <div
-      className={`py-1.5 px-2 rounded transition-all duration-200 ${
-        activa ? "bg-[#991b1b] text-white shadow-sm" : "bg-white text-[#59413e]"
-      }`}
-    >
-      <div className="font-bold flex items-center justify-center gap-1 text-xs">
-        <span className="material-symbols-outlined text-[14px]">{icono}</span>
-
-        {nombre}
-      </div>
-
-      <span className="text-[10px] block mt-0.5 opacity-80">{ruta}</span>
-    </div>
-  );
-}
-
-interface RolInfoProps {
-  icono: string;
-  titulo: string;
-  descripcion: string;
-}
-
-function RolInfo({ icono, titulo, descripcion }: RolInfoProps) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="w-9 h-9 rounded-lg bg-[#f2f3ff] flex items-center justify-center flex-shrink-0">
-        <span className="material-symbols-outlined text-[#760009]">
-          {icono}
-        </span>
-      </div>
-
-      <div>
-        <p className="text-sm font-semibold">{titulo}</p>
-
-        <p className="text-xs text-[#59413e] mt-0.5">{descripcion}</p>
-      </div>
     </div>
   );
 }

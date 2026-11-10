@@ -9,6 +9,13 @@ import type {
 export const categoriasService = {
   getTodas: async (): Promise<Categoria[]> => {
     const { data } = await api.get<Categoria[]>("/categorias");
+
+    return data;
+  },
+
+  getPorId: async (id: number): Promise<Categoria> => {
+    const { data } = await api.get<Categoria>(`/categorias/${id}`);
+
     return data;
   },
 

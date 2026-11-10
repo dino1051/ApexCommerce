@@ -1,0 +1,66 @@
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap");
+
+@import "tailwindcss";
+
+@theme {
+  /* Identidad */
+  --color-primary: #991b1b;
+  --color-primary-hover: #b91c1c;
+  --color-primary-dark: #760009;
+  --color-primary-light: #fef2f2;
+
+  /* Navegación */
+  --color-secondary: #1e293b;
+  --color-secondary-hover: #334155;
+
+  /* Superficies */
+  --color-surface: #ffffff;
+  --color-canvas: #f8fafc;
+  --color-surface-muted: #f1f5f9;
+
+  /* Texto */
+  --color-ink: #0f172a;
+  --color-ink-secondary: #475569;
+  --color-ink-muted: #94a3b8;
+
+  /* Bordes */
+  --color-border-ui: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+
+  /* Estados */
+  --color-success: #15803d;
+  --color-success-light: #f0fdf4;
+
+  --color-warning: #d97706;
+  --color-warning-light: #fffbeb;
+
+  --color-danger: #dc2626;
+  --color-danger-light: #fef2f2;
+
+  /* Tipografías */
+  --font-sans: "Inter", sans-serif;
+  --font-heading: "Plus Jakarta Sans", sans-serif;
+
+  /* Bordes redondeados */
+  --radius-card: 0.5rem;
+  --radius-modal: 0.75rem;
+}
+
+@layer base {
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-heading;
+  }
+
+  button {
+    @apply cursor-pointer;
+  }
+
+  button:disabled {
+    @apply cursor-not-allowed;
+  }
+}

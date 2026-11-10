@@ -1,4 +1,20 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Monitor,
+  Package,
+  Tags,
+  ReceiptText,
+  Truck,
+  Wallet,
+  ContactRound,
+  Store,
+  X,
+  LogOut,
+} from "lucide-react";
+
+import type { LucideIcon } from "lucide-react";
+import { useAuthStore } from "../store/useAuthStore";
 
 interface AdminSidebarProps {
   abierto: boolean;
@@ -8,44 +24,44 @@ interface AdminSidebarProps {
 interface OpcionMenu {
   nombre: string;
   ruta: string;
-  icono: string;
+  icono: LucideIcon;
 }
 
 const operaciones: OpcionMenu[] = [
   {
     nombre: "Dashboard",
     ruta: "/admin/dashboard",
-    icono: "dashboard",
+    icono: LayoutDashboard,
   },
   {
     nombre: "POS Mostrador",
     ruta: "/admin/pos",
-    icono: "point_of_sale",
+    icono: Monitor,
   },
   {
     nombre: "Productos",
     ruta: "/admin/productos",
-    icono: "inventory_2",
+    icono: Package,
   },
   {
     nombre: "Categorías",
     ruta: "/admin/categorias",
-    icono: "category",
+    icono: Tags,
   },
   {
     nombre: "Ventas",
     ruta: "/admin/ventas",
-    icono: "receipt_long",
+    icono: ReceiptText,
   },
   {
     nombre: "Pedidos",
     ruta: "/admin/pedidos",
-    icono: "local_shipping",
+    icono: Truck,
   },
   {
     nombre: "Caja",
     ruta: "/admin/caja",
-    icono: "account_balance_wallet",
+    icono: Wallet,
   },
 ];
 
@@ -53,14 +69,39 @@ const administracion: OpcionMenu[] = [
   {
     nombre: "Usuarios Staff",
     ruta: "/admin/usuarios",
-    icono: "badge",
+    icono: ContactRound,
   },
 ];
 
 export function AdminSidebar({ abierto, onCerrar }: AdminSidebarProps) {
+  const navigate = useNavigate();
+
+  const usuario = useAuthStore((state) => state.usuario);
+  const cerrarSesion = useAuthStore((state) => state.cerrarSesion);
+
+  const nombreCompleto = usuario
+    ? `${usuario.nombre} ${usuario.apellido}`.trim()
+    : "Usuario";
+
+  const inicial = usuario?.nombre?.charAt(0).toUpperCase() ?? "U";
+
+  const nombreRol: Record<string, string> = {
+    ADMIN: "Administrador",
+    CAJERO: "Cajero",
+    CLIENTEWEB: "Cliente",
+  };
+
+  const rol = usuario ? (nombreRol[usuario.rol] ?? usuario.rol) : "Sin rol";
+
+  const manejarLogout = () => {
+    cerrarSesion();
+    onCerrar();
+    navigate("/login", { replace: true });
+  };
+
   return (
     <>
-      {/* Overlay móvil */}
+      {/* OVERLAY MÓVIL */}
       {abierto && (
         <button
           type="button"
@@ -73,30 +114,27 @@ export function AdminSidebar({ abierto, onCerrar }: AdminSidebarProps) {
       <aside
         className={`
           fixed inset-y-0 left-0 z-50
-          w-72
-          bg-white
+          flex w-72 flex-col
           border-r border-[#e5e1e0]
-          flex flex-col
+          bg-white
           transform transition-transform duration-200
           lg:translate-x-0
           ${abierto ? "translate-x-0" : "-translate-x-full"}
         `}
       >
         {/* LOGO */}
-        <div className="h-16 px-5 border-b border-[#e5e1e0] flex items-center justify-between">
+        <div className="flex h-16 items-center justify-between border-b border-[#e5e1e0] px-5">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#991b1b] flex items-center justify-center">
-              <span className="material-symbols-outlined text-white">
-                storefront
-              </span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#991b1b]">
+              <Store size={21} className="text-white" />
             </div>
 
             <div className="flex flex-col">
-              <span className="text-lg font-bold tracking-tight">
+              <span className="text-lg font-bold tracking-tight text-[#131b2e]">
                 Apex Commerce
               </span>
 
-              <span className="text-[10px] text-[#760009] uppercase tracking-widest font-bold">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#760009]">
                 Administración
               </span>
             </div>
@@ -105,10 +143,10 @@ export function AdminSidebar({ abierto, onCerrar }: AdminSidebarProps) {
           <button
             type="button"
             onClick={onCerrar}
-            className="lg:hidden p-2 rounded-lg hover:bg-[#f2f3ff]"
+            className="rounded-lg p-2 text-[#59413e] hover:bg-[#f2f3ff] lg:hidden"
             aria-label="Cerrar menú"
           >
-            <span className="material-symbols-outlined">close</span>
+            <X size={20} />
           </button>
         </div>
 
@@ -127,19 +165,36 @@ export function AdminSidebar({ abierto, onCerrar }: AdminSidebarProps) {
           />
         </div>
 
-        {/* PERFIL / SESIÓN */}
-        <div className="p-4 border-t border-[#e5e1e0]">
-          <div className="bg-[#f2f3ff] rounded-lg p-3 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-[#991b1b] text-white flex items-center justify-center font-bold">
-              A
+        {/* PERFIL Y SESIÓN */}
+        <div className="space-y-3 border-t border-[#e5e1e0] p-4">
+          <div className="flex items-center gap-3 rounded-lg bg-[#f2f3ff] p-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#991b1b] font-bold text-white">
+              {inicial}
             </div>
 
-            <div className="min-w-0">
-              <p className="text-sm font-bold truncate">Administrador</p>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold text-[#131b2e]">
+                {nombreCompleto}
+              </p>
 
-              <p className="text-xs text-[#59413e]">Administrador</p>
+              <p className="text-xs text-[#59413e]">{rol}</p>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={manejarLogout}
+            className="
+              flex w-full items-center gap-3
+              rounded-lg px-3 py-2.5
+              text-sm font-semibold text-[#991b1b]
+              transition-colors
+              hover:bg-red-50
+            "
+          >
+            <LogOut size={19} />
+            <span>Cerrar sesión</span>
+          </button>
         </div>
       </aside>
     </>
@@ -155,40 +210,37 @@ interface MenuSectionProps {
 function MenuSection({ titulo, opciones, onNavigate }: MenuSectionProps) {
   return (
     <section className="mb-6">
-      <div className="px-5 mb-2">
-        <span className="text-[10px] uppercase tracking-widest font-bold text-[#59413e]">
+      <div className="mb-2 px-5">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-[#59413e]">
           {titulo}
         </span>
       </div>
 
       <nav className="flex flex-col gap-1 px-3">
-        {opciones.map((opcion) => (
-          <NavLink
-            key={opcion.ruta}
-            to={opcion.ruta}
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              `
-              flex items-center gap-3
-              px-3 py-2.5
-              rounded-lg
-              text-sm
-              transition-colors
-              ${
-                isActive
-                  ? "bg-[#991b1b] text-white font-bold"
-                  : "text-[#59413e] hover:bg-[#f2f3ff] hover:text-[#131b2e]"
-              }
-              `
-            }
-          >
-            <span className="material-symbols-outlined text-[20px]">
-              {opcion.icono}
-            </span>
+        {opciones.map((opcion) => {
+          const Icono = opcion.icono;
 
-            <span>{opcion.nombre}</span>
-          </NavLink>
-        ))}
+          return (
+            <NavLink
+              key={opcion.ruta}
+              to={opcion.ruta}
+              onClick={onNavigate}
+              className={({ isActive }) => `
+                flex items-center gap-3
+                rounded-lg px-3 py-2.5
+                text-sm transition-colors
+                ${
+                  isActive
+                    ? "bg-[#991b1b] font-bold text-white"
+                    : "text-[#59413e] hover:bg-[#f2f3ff] hover:text-[#131b2e]"
+                }
+              `}
+            >
+              <Icono size={20} strokeWidth={1.9} />
+              <span>{opcion.nombre}</span>
+            </NavLink>
+          );
+        })}
       </nav>
     </section>
   );

@@ -1,33 +1,45 @@
 import { api } from "../lib/axios";
 
 import type {
-  ArticuloResumen,
-  ArticuloDetalle,
+  ArticuloPublico,
+  ArticuloAdmin,
   CrearArticuloDTO,
   ActualizarArticuloDTO,
 } from "../types/articulo";
 
 export const articulosService = {
-  getTodos: async (): Promise<ArticuloResumen[]> => {
-    const { data } = await api.get<ArticuloResumen[]>("/articulos");
+  // Catálogo público
+  getTodos: async (): Promise<ArticuloPublico[]> => {
+    const { data } = await api.get<ArticuloPublico[]>("/articulos");
 
     return data;
   },
 
-  getPorId: async (id: number): Promise<ArticuloDetalle> => {
-    const { data } = await api.get<ArticuloDetalle>(`/articulos/${id}`);
+  // Detalle público
+  getPorId: async (id: number): Promise<ArticuloPublico> => {
+    const { data } = await api.get<ArticuloPublico>(`/articulos/${id}`);
 
     return data;
   },
 
-  crear: async (datos: CrearArticuloDTO) => {
-    const { data } = await api.post("/articulos", datos);
+  // Catálogo administrativo
+  getTodosAdmin: async (): Promise<ArticuloAdmin[]> => {
+    const { data } = await api.get<ArticuloAdmin[]>("/articulos/admin/todos");
 
     return data;
   },
 
-  actualizar: async (id: number, datos: ActualizarArticuloDTO) => {
-    const { data } = await api.patch(`/articulos/${id}`, datos);
+  crear: async (datos: CrearArticuloDTO): Promise<ArticuloAdmin> => {
+    const { data } = await api.post<ArticuloAdmin>("/articulos", datos);
+
+    return data;
+  },
+
+  actualizar: async (
+    id: number,
+    datos: ActualizarArticuloDTO,
+  ): Promise<ArticuloAdmin> => {
+    const { data } = await api.patch<ArticuloAdmin>(`/articulos/${id}`, datos);
 
     return data;
   },
