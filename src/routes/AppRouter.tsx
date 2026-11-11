@@ -4,25 +4,10 @@ import { AdminLayout } from "../layout/AdminLayout";
 
 import LoginPage from "../pages/LoginPage";
 import ProductosPage from "../pages/ProductosPage";
+import { AdminDashboardPage } from "../pages/AdminDashboardPage";
 
 import RutaProtegida from "../auth/RutaProtegida";
 import RedireccionPorRol from "../auth/RedireccionPorRol";
-
-function SinAcceso() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-canvas p-6">
-      <div className="w-full max-w-md rounded-xl border border-border-ui bg-surface p-8 text-center shadow-sm">
-        <h1 className="font-heading text-2xl font-bold text-primary">
-          Acceso denegado
-        </h1>
-
-        <p className="mt-3 text-sm text-ink-secondary">
-          No tienes permisos para acceder a esta página.
-        </p>
-      </div>
-    </div>
-  );
-}
 
 export default function AppRouter() {
   return (
@@ -31,7 +16,7 @@ export default function AppRouter() {
         {/* RUTAS PÚBLICAS */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* REDIRECCIÓN INICIAL */}
+        {/* RUTA INICIAL */}
         <Route path="/" element={<RedireccionPorRol />} />
 
         {/* ADMINISTRACIÓN */}
@@ -39,15 +24,26 @@ export default function AppRouter() {
           <Route element={<AdminLayout />}>
             <Route
               path="/admin"
-              element={<Navigate to="/admin/productos" replace />}
+              element={<Navigate to="/admin/dashboard" replace />}
             />
+
+            <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
 
             <Route path="/admin/productos" element={<ProductosPage />} />
           </Route>
         </Route>
 
         {/* ACCESO DENEGADO */}
-        <Route path="/sin-acceso" element={<SinAcceso />} />
+        <Route
+          path="/sin-acceso"
+          element={
+            <div className="flex min-h-screen items-center justify-center p-6">
+              <h1 className="text-2xl font-bold text-red-800">
+                Acceso denegado
+              </h1>
+            </div>
+          }
+        />
 
         {/* RUTA INEXISTENTE */}
         <Route path="*" element={<Navigate to="/" replace />} />
