@@ -17,6 +17,7 @@ export function AdminDashboardPage() {
     resumen,
     resumenPedidos,
     sesionesAbiertas,
+    articulosStockBajo,
     cargando,
     error,
     recargar,
@@ -85,8 +86,14 @@ export function AdminDashboardPage() {
 
           <KpiCard
             titulo="Stock bajo"
-            valor="--"
-            descripcion="Productos que requieren atención"
+            valor={
+              cargando && !resumen
+                ? "..."
+                : error
+                  ? "--"
+                  : String(articulosStockBajo.length)
+            }
+            descripcion="Productos con 5 unidades o menos"
             icono={Package}
           />
 
@@ -286,11 +293,54 @@ export function AdminDashboardPage() {
             </div>
 
             <div className="p-5">
-              <EmptyState
-                icono={Package}
-                titulo="Sin alertas de stock"
-                descripcion="Los productos con stock bajo aparecerán aquí."
-              />
+              {articulosStockBajo.length > 0 ? (
+                <div className="flex flex-col divide-y divide-[#ebe7e6]">
+                  {articulosStockBajo.slice(0, 5).map((articulo) => (
+                    <div
+                      key={articulo.id}
+                      className="flex items-center justify-between gap-4 py-3"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold">
+                          {articulo.nombre}
+                        </p>
+
+                        <p className="text-xs text-[#59413e]">
+                          {articulo.categoria.nombre}
+                        </p>
+                      </div>
+
+                      <span
+                        className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${
+                          articulo.stock === 0
+                            ? "bg-red-100 text-red-700"
+                            : "bg-amber-100 text-amber-700"
+                        }`}
+                      >
+                        {articulo.stock === 0
+                          ? "Agotado"
+                          : `${articulo.stock} disponibles`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icono={Package}
+                  titulo={
+                    cargando
+                      ? "Cargando inventario..."
+                      : error
+                        ? "No se pudo cargar el inventario"
+                        : "Sin alertas de stock"
+                  }
+                  descripcion={
+                    error
+                      ? "Intenta actualizar el Dashboard."
+                      : "Los productos con stock bajo aparecerán aquí."
+                  }
+                />
+              )}
             </div>
           </div>
         </section>

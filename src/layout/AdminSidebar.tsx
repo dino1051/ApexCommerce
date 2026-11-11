@@ -15,6 +15,7 @@ import {
 
 import type { LucideIcon } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
+import { usePosStore } from "../store/usePosStore";
 
 interface AdminSidebarProps {
   abierto: boolean;
@@ -94,6 +95,7 @@ export function AdminSidebar({ abierto, onCerrar }: AdminSidebarProps) {
   const rol = usuario ? (nombreRol[usuario.rol] ?? usuario.rol) : "Sin rol";
 
   const manejarLogout = () => {
+    usePosStore.getState().vaciarCarrito();
     cerrarSesion();
     onCerrar();
     navigate("/login", { replace: true });

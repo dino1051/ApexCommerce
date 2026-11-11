@@ -5,6 +5,7 @@ import type {
   SesionCajaAbierta,
   ResumenPedidos,
 } from "../types/dashboard";
+import type { ArticuloStockBajo } from "../types/dashboard";
 
 export const dashboardService = {
   obtenerResumenDiario: async (): Promise<ResumenDiario> => {
@@ -23,6 +24,16 @@ export const dashboardService = {
 
   obtenerResumenPedidos: async (): Promise<ResumenPedidos> => {
     const { data } = await api.get<ResumenPedidos>("/ventas-web/resumen");
+
+    return data;
+  },
+  obtenerStockBajo: async (Max: number = 5): Promise<ArticuloStockBajo[]> => {
+    const { data } = await api.get<ArticuloStockBajo[]>(
+      "/articulos/stock-bajo",
+      {
+        params: { Max },
+      },
+    );
 
     return data;
   },

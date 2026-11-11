@@ -6,12 +6,14 @@ import type {
   ResumenDiario,
   SesionCajaAbierta,
   ResumenPedidos,
+  ArticuloStockBajo,
 } from "../types/dashboard";
 
 interface DashboardState {
   resumen: ResumenDiario | null;
   sesionesAbiertas: SesionCajaAbierta[];
   resumenPedidos: ResumenPedidos | null;
+  articulosStockBajo: ArticuloStockBajo[];
   cargando: boolean;
   error: string | null;
 
@@ -23,6 +25,7 @@ export const useDashboardStore = create<DashboardState>()((set) => ({
   resumen: null,
   sesionesAbiertas: [],
   resumenPedidos: null,
+  articulosStockBajo: [],
   cargando: false,
   error: null,
 
@@ -33,16 +36,19 @@ export const useDashboardStore = create<DashboardState>()((set) => ({
     });
 
     try {
-      const [resumen, sesionesAbiertas, resumenPedidos] = await Promise.all([
-        dashboardService.obtenerResumenDiario(),
-        dashboardService.obtenerSesionesAbiertas(),
-        dashboardService.obtenerResumenPedidos(),
-      ]);
+      const [resumen, sesionesAbiertas, resumenPedidos, articulosStockBajo] =
+        await Promise.all([
+          dashboardService.obtenerResumenDiario(),
+          dashboardService.obtenerSesionesAbiertas(),
+          dashboardService.obtenerResumenPedidos(),
+          dashboardService.obtenerStockBajo(5),
+        ]);
 
       set({
         resumen,
         sesionesAbiertas,
         resumenPedidos,
+        articulosStockBajo,
       });
     } catch (error) {
       console.error("Error al cargar el Dashboard:", error);
@@ -62,6 +68,7 @@ export const useDashboardStore = create<DashboardState>()((set) => ({
       resumen: null,
       resumenPedidos: null,
       sesionesAbiertas: [],
+      articulosStockBajo: [],
       cargando: false,
       error: null,
     }),

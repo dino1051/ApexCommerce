@@ -69,3 +69,17 @@ export interface ResumenPedidos {
   pedidosPendientes: number;
   pedidosRecientes: PedidoReciente[];
 }
+
+export interface ArticuloStockBajo {
+  id: number;
+  nombre: string;
+  stock: number;
+  precioVenta: string;
+
+  precioCompra: string;
+
+  categoria: {
+    id: number;
+    nombre: string;
+  };
+}

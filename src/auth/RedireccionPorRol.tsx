@@ -5,7 +5,7 @@ import type { Rol } from "../types/auth";
 
 export const rutasPorRol: Record<Rol, string> = {
   ADMIN: "/admin/productos",
-  CAJERO: "/caja",
+  CAJERO: "/caja/pos",
   CLIENTEWEB: "/tienda",
 };
 

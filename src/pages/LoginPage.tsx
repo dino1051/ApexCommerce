@@ -60,12 +60,11 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   const [mostrarError, setMostrarError] = useState(true);
-
   const token = useAuthStore((s) => s.token);
   const usuario = useAuthStore((s) => s.usuario);
-  const iniciarSesion = useAuthStore((s) => s.iniciarSesion);
   const cargando = useAuthStore((s) => s.cargando);
   const error = useAuthStore((s) => s.error);
+  const iniciarSesion = useAuthStore((s) => s.iniciarSesion);
   const limpiarError = useAuthStore((s) => s.limpiarError);
 
   const {
@@ -101,9 +100,7 @@ export default function LoginPage() {
       navigate(destino ?? "/sin-acceso", {
         replace: true,
       });
-    } catch {
-      // Zustand registra el error.
-    }
+    } catch {}
   };
 
   return (

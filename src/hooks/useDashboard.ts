@@ -6,7 +6,9 @@ export function useDashboard() {
   const resumen = useDashboardStore((state) => state.resumen);
   const resumenPedidos = useDashboardStore((state) => state.resumenPedidos);
   const sesionesAbiertas = useDashboardStore((state) => state.sesionesAbiertas);
-
+  const articulosStockBajo = useDashboardStore(
+    (state) => state.articulosStockBajo,
+  );
   const cargando = useDashboardStore((state) => state.cargando);
   const error = useDashboardStore((state) => state.error);
 
@@ -20,6 +22,7 @@ export function useDashboard() {
     resumen,
     resumenPedidos,
     sesionesAbiertas,
+    articulosStockBajo,
     cargando,
     error,
     recargar: cargarDashboard,
