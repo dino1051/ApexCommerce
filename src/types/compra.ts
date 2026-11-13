@@ -2,7 +2,7 @@ import type { DecimalAPI, FechaAPI } from "./api";
 import type { Pagos } from "./enums";
 import type { Proveedor } from "./proveedor";
 import type { Usuario } from "./usuario";
-import type { Articulo } from "./articulo";
+import type { ArticuloAdmin } from "./articulo";
 
 export interface DetalleCompra {
   id: number;
@@ -10,7 +10,7 @@ export interface DetalleCompra {
   subtotal: DecimalAPI;
   id_compra: number;
   id_articulo: number;
-  articulo?: Articulo;
+  articulo?: ArticuloAdmin;
 }
 
 export interface Compra {

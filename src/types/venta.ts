@@ -1,6 +1,6 @@
 import type { DecimalAPI, FechaAPI } from "./api";
 import type { EstadoVenta, Pagos } from "./enums";
-import type { Articulo } from "./articulo";
+import type { ArticuloPublico } from "./articulo";
 import type { Usuario } from "./usuario";
 
 export interface DetalleVenta {
@@ -10,7 +10,7 @@ export interface DetalleVenta {
   id_venta: number;
   id_articulo: number;
   cantidadDevuelta: number;
-  articulo?: Articulo;
+  articulo?: ArticuloPublico;
 }
 
 export interface Venta {

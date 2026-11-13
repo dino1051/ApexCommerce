@@ -1,5 +1,5 @@
 import { Outlet, NavLink, Link } from "react-router-dom";
-import { ShoppingBag, ShoppingCart, UserRound } from "lucide-react";
+import { ShoppingBag, ShoppingCart } from "lucide-react";
 import { useCarritoWebStore } from "../store/useCarritoWebStore";
 import { useAuthStore } from "../store/useAuthStore";
 import MenuUsuarioTienda from "../components/tienda/MenuUsuarioTienda";

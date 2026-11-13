@@ -18,7 +18,5 @@ export type EstadoPagoWeb =
   | "REEMBOLSADO";
 
 export type Pagos = "EFECTIVO" | "TARJETA" | "TRANSFERENCIAQR";
-
 export type Role = "ADMIN" | "CAJERO" | "CLIENTEWEB";
-
 export type EstadoSesionCaja = "ABIERTA" | "CERRADA";

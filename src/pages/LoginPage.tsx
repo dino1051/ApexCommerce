@@ -1,25 +1,17 @@
 import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 import {
   ArrowLeft,
   ArrowRight,
-  ShieldCheck,
-  Shield,
   LockKeyhole,
   Mail,
-  Eye,
-  EyeOff,
-  CheckCircle2,
   AlertCircle,
   X,
   UserPlus,
   ChevronRight,
   Store,
-  Monitor,
-  Settings,
-  Route,
   LoaderCircle,
 } from "lucide-react";
 
@@ -32,32 +24,38 @@ const rutasPorRol: Record<Rol, string> = {
   CLIENTEWEB: "/tienda",
 };
 
-const roles = [
-  {
-    rol: "ADMIN",
-    nombre: "Administrador",
-    ruta: "/admin/productos",
-    descripcion: "Catálogo, usuarios, pedidos, caja y reportes.",
-    Icono: Settings,
-  },
-  {
-    rol: "CAJERO",
-    nombre: "Cajero",
-    ruta: "/caja",
-    descripcion: "POS, ventas, pedidos e historial.",
-    Icono: Monitor,
-  },
-  {
-    rol: "CLIENTEWEB",
-    nombre: "Cliente Web",
-    ruta: "/tienda",
-    descripcion: "Catálogo, carrito, checkout y pedidos.",
-    Icono: Store,
-  },
-] as const;
+function obtenerDestino(rol: Rol, origen?: string): string {
+  const rutaPredeterminada = rutasPorRol[rol] ?? "/sin-acceso";
+
+  if (!origen || !origen.startsWith("/") || origen.startsWith("//")) {
+    return rutaPredeterminada;
+  }
+
+  // Solo CLIENTEWEB puede regresar a estas rutas.
+  if (rol === "CLIENTEWEB") {
+    const rutasPermitidas = ["/tienda/checkout", "/tienda/mis-pedidos"];
+
+    const permitido = rutasPermitidas.some(
+      (ruta) => origen === ruta || origen.startsWith(`${ruta}/`),
+    );
+
+    if (permitido) {
+      return origen;
+    }
+  }
+
+  return rutaPredeterminada;
+}
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const origen = (
+    location.state as {
+      from?: string;
+    } | null
+  )?.from;
 
   const [mostrarError, setMostrarError] = useState(true);
   const token = useAuthStore((s) => s.token);
@@ -80,7 +78,7 @@ export default function LoginPage() {
 
   // Evita mostrar el login a usuarios ya autenticados.
   if (token && usuario) {
-    return <Navigate to={rutasPorRol[usuario.rol] ?? "/sin-acceso"} replace />;
+    return <Navigate to={obtenerDestino(usuario.rol, origen)} replace />;
   }
 
   const manejarLogin = async (datos: LoginDTO) => {
@@ -95,12 +93,14 @@ export default function LoginPage() {
         return;
       }
 
-      const destino = rutasPorRol[usuarioAutenticado.rol];
+      const destino = obtenerDestino(usuarioAutenticado.rol, origen);
 
-      navigate(destino ?? "/sin-acceso", {
+      navigate(destino, {
         replace: true,
       });
-    } catch {}
+    } catch {
+      // El store ya administra el mensaje de error.
+    }
   };
 
   return (
