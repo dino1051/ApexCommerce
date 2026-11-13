@@ -11,6 +11,8 @@ import {
   Store,
   X,
   LogOut,
+  HistoryIcon,
+  ShoppingBag,
 } from "lucide-react";
 
 import type { LucideIcon } from "lucide-react";
@@ -63,6 +65,21 @@ const operaciones: OpcionMenu[] = [
     nombre: "Caja",
     ruta: "/admin/caja",
     icono: Wallet,
+  },
+  {
+    nombre: "Cajas",
+    ruta: "/admin/cajas",
+    icono: Wallet,
+  },
+  {
+    nombre: "Historial de cajas",
+    ruta: "/admin/cajas/historial",
+    icono: HistoryIcon,
+  },
+  {
+    nombre: "Ventas Web",
+    ruta: "/admin/ventas-web",
+    icono: ShoppingBag,
   },
 ];
 

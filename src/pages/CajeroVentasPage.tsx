@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { ReceiptText, Banknote, RefreshCw, Search, Filter } from "lucide-react";
-
 import { useMisVentasStore } from "../store/useMisVentasStore";
-
 import type { EstadoVenta } from "../types/misVentas";
-
 import type { TipoPago } from "../types/pos";
+import { DetalleVentaModal } from "../components/ventas/DetalleVentaModal";
+import type { VentaCajero } from "../types/misVentas";
 
 const formatoMoneda = (valor: number | string) =>
   new Intl.NumberFormat("es-MX", {
@@ -45,7 +44,8 @@ export default function CajeroVentasPage() {
   const cargando = useMisVentasStore((state) => state.cargando);
   const error = useMisVentasStore((state) => state.error);
   const cargarVentas = useMisVentasStore((state) => state.cargarVentas);
-
+  const [ventaSeleccionada, setVentaSeleccionada] =
+    useState<VentaCajero | null>(null);
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("TODOS");
   const [filtroPago, setFiltroPago] = useState("TODOS");
@@ -233,6 +233,7 @@ export default function CajeroVentasPage() {
                   <th className="px-5 py-4">Método de pago</th>
                   <th className="px-5 py-4">Estado</th>
                   <th className="px-5 py-4 text-right">Total</th>
+                  <th className="px-5 py-4 text-right">Acciones</th>
                 </tr>
               </thead>
 
@@ -264,6 +265,15 @@ export default function CajeroVentasPage() {
                     <td className="px-5 py-4 text-right font-bold text-[#131b2e]">
                       {formatoMoneda(venta.total)}
                     </td>
+                    <td className="px-5 py-4 text-right">
+                      <button
+                        type="button"
+                        onClick={() => setVentaSeleccionada(venta)}
+                        className="rounded-lg border border-[#ebe7e6] px-3 py-2 text-xs font-semibold text-[#991b1b] transition-colors hover:bg-[#fff1f2]"
+                      >
+                        Ver detalle
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -271,6 +281,10 @@ export default function CajeroVentasPage() {
           </div>
         )}
       </section>
+      <DetalleVentaModal
+        venta={ventaSeleccionada}
+        onCerrar={() => setVentaSeleccionada(null)}
+      />
     </div>
   );
 }

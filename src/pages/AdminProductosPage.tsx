@@ -6,7 +6,7 @@ import { TablaProductos } from "../components/productos/TablaProductos";
 import type { ArticuloAdmin } from "../types/articulo";
 import { useCategoriasStore } from "../store/useCategoriasStore";
 
-export default function ProductosPage() {
+export default function AdminProductosPage() {
   const articulos = useArticulosStore((s) => s.articulos);
   const cargando = useArticulosStore((s) => s.cargando);
   const guardando = useArticulosStore((s) => s.guardando);

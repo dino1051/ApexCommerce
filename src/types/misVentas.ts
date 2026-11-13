@@ -17,4 +17,15 @@ export interface VentaCajero {
   usuario: {
     nombre: string;
   };
+  detallesVenta: DetalleVentaCajero[];
+}
+
+export interface DetalleVentaCajero {
+  id: number;
+  cantidadArticulos: number;
+  subtotal: string;
+  articulo: {
+    id: number;
+    nombre: string;
+  };
 }
