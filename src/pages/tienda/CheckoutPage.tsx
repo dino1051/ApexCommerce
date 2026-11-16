@@ -129,16 +129,6 @@ export default function CheckoutPage() {
     [productos],
   );
 
-  const pedidoDTO = useMemo<CrearPedidoDTO>(
-    () => ({
-      detalles: productos.map((item) => ({
-        id_articulo: item.id,
-        cantidadArticulos: item.cantidad,
-      })),
-    }),
-    [productos],
-  );
-
   const reintentar = () => {
     setVersion((actual) => actual + 1);
   };

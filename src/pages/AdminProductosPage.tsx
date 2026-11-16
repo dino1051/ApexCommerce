@@ -54,17 +54,6 @@ export default function AdminProductosPage() {
     setProductoSeleccionado(articulo);
     setModalAbierto(true);
   };
-  const manejarCrear = async (datos: ArticuloFormulario) => {
-    try {
-      await crearArticulo(datos);
-
-      toast.success("Producto creado correctamente");
-
-      setModalAbierto(false);
-    } catch {
-      toast.error("No fue posible crear el producto");
-    }
-  };
   const manejarGuardar = async (datos: ArticuloFormulario) => {
     try {
       if (productoSeleccionado) {

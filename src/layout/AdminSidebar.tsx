@@ -5,7 +5,6 @@ import {
   Package,
   Tags,
   ReceiptText,
-  Truck,
   Wallet,
   ContactRound,
   Store,

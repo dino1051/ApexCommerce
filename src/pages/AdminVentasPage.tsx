@@ -6,7 +6,6 @@ import {
   ReceiptText,
   Wallet,
   TrendingUp,
-  Eye,
   Filter,
 } from "lucide-react";
 
