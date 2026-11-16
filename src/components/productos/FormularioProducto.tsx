@@ -1,129 +1,106 @@
 import { useEffect } from "react";
-import { X, PackagePlus, Save } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PackagePlus, X, Save } from "lucide-react";
 
 import {
   articuloSchema,
   type ArticuloFormulario,
+  type ArticuloFormularioEntrada,
 } from "../../schemas/articulo.schema";
-
 import type { ArticuloAdmin } from "../../types/articulo";
-import type { Categoria } from "../../types/categoria";
 
-import { Boton } from "../ui/Boton";
+interface Categoria {
+  id: number;
+  nombre: string;
+}
 
-interface FormularioProductoProps {
-  abierto: boolean;
-  articulo: ArticuloAdmin | null;
+interface Categoria {
+  id: number;
+  nombre: string;
+}
+
+interface Props {
+  producto?: ArticuloAdmin | null;
   categorias: Categoria[];
   guardando: boolean;
   onCerrar: () => void;
   onGuardar: (datos: ArticuloFormulario) => Promise<void>;
 }
 
-const valoresIniciales: ArticuloFormulario = {
-  nombre: "",
-  descripcion: "",
-  stock: 0,
-  precioVenta: 0,
-  precioCompra: 0,
-  id_categoria: 0,
-};
-
 export function FormularioProducto({
-  abierto,
-  articulo,
+  producto,
   categorias,
   guardando,
   onCerrar,
   onGuardar,
-}: FormularioProductoProps) {
+}: Props) {
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
-  } = useForm<ArticuloFormulario>({
+    formState: { errors, isSubmitting },
+  } = useForm<ArticuloFormularioEntrada, unknown, ArticuloFormulario>({
     resolver: zodResolver(articuloSchema),
-    defaultValues: valoresIniciales,
+    defaultValues: {
+      nombre: "",
+      descripcion: "",
+      id_categoria: 0,
+      precioCompra: 0,
+      precioVenta: 0,
+      stock: 0,
+    },
   });
+  useEffect(() => {
+    reset({
+      nombre: producto?.nombre ?? "",
+      descripcion: producto?.descripcion ?? "",
+      id_categoria: producto?.id_categoria ?? 0,
+      precioCompra: Number(producto?.precioCompra ?? 0),
+      precioVenta: Number(producto?.precioVenta ?? 0),
+      stock: producto?.stock ?? 0,
+    });
+  }, [producto, reset]);
+  const procesando = guardando || isSubmitting;
 
   useEffect(() => {
-    if (!abierto) return;
-
-    if (articulo) {
-      reset({
-        nombre: articulo.nombre,
-        descripcion: articulo.descripcion ?? "",
-        stock: articulo.stock,
-        precioVenta: Number(articulo.precioVenta),
-        precioCompra: Number(articulo.precioCompra),
-        id_categoria: articulo.id_categoria,
-      });
-    } else {
-      reset(valoresIniciales);
-    }
-  }, [articulo, abierto, reset]);
-
-  useEffect(() => {
-    if (!abierto) return;
-
-    const manejarEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !guardando) {
+    const cerrarEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !procesando) {
         onCerrar();
       }
     };
 
-    window.addEventListener("keydown", manejarEscape);
+    window.addEventListener("keydown", cerrarEscape);
 
     return () => {
-      window.removeEventListener("keydown", manejarEscape);
+      window.removeEventListener("keydown", cerrarEscape);
     };
-  }, [abierto, guardando, onCerrar]);
-
-  if (!abierto) return null;
-
-  const manejarEnvio = async (datos: ArticuloFormulario) => {
-    await onGuardar(datos);
-  };
+  }, [onCerrar, procesando]);
 
   return (
-    <div
-      className="
-        fixed inset-0 z-50 flex items-center
-        justify-center bg-slate-900/45 p-4
-      "
-    >
-      <div
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="titulo-formulario-producto"
-        className="
-          w-full max-w-2xl overflow-hidden
-          rounded-modal border border-border-ui
-          bg-surface shadow-2xl
-        "
+        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-xl"
       >
         {/* Encabezado */}
-        <div className="flex items-center justify-between border-b border-border-ui px-6 py-5">
+        <div className="flex items-center justify-between border-b border-slate-200 p-6">
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-primary-light p-3 text-primary">
-              <PackagePlus size={22} />
+            <div className="rounded-xl bg-red-50 p-3 text-red-800">
+              <PackagePlus size={24} />
             </div>
 
             <div>
-              <h2
-                id="titulo-formulario-producto"
-                className="font-heading text-xl font-bold text-ink"
-              >
-                {articulo ? "Editar producto" : "Nuevo producto"}
-              </h2>
-
-              <p className="text-sm text-ink-secondary">
-                {articulo
-                  ? "Modifica la información del artículo."
+              <p className="mt-1 text-sm text-slate-500">
+                {producto
+                  ? `Modifica los datos de "${producto.nombre}".`
                   : "Registra un artículo en el inventario."}
+              </p>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Registra un artículo en el inventario.
               </p>
             </div>
           </div>
@@ -131,227 +108,194 @@ export function FormularioProducto({
           <button
             type="button"
             onClick={onCerrar}
-            disabled={guardando}
-            className="rounded p-2 text-ink-secondary hover:bg-surface-muted"
+            disabled={procesando}
             aria-label="Cerrar formulario"
+            className="rounded-lg p-2 hover:bg-slate-100 disabled:opacity-50"
           >
-            <X size={20} />
+            <X size={21} />
           </button>
         </div>
 
         {/* Formulario */}
         <form
-          onSubmit={handleSubmit(manejarEnvio)}
-          className="max-h-[75vh] overflow-y-auto"
+          onSubmit={handleSubmit(onGuardar)}
+          className="space-y-6 p-6"
+          noValidate
         >
-          <div className="grid gap-5 p-6 md:grid-cols-2">
-            {/* Nombre */}
-            <div className="md:col-span-2">
+          {/* Nombre */}
+          <div>
+            <label
+              htmlFor="nombre"
+              className="mb-2 block text-sm font-semibold"
+            >
+              Nombre del producto *
+            </label>
+
+            <input
+              id="nombre"
+              type="text"
+              placeholder="Ej. Teclado mecánico RGB"
+              {...register("nombre")}
+              aria-invalid={!!errors.nombre}
+              className="w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-red-800"
+            />
+
+            {errors.nombre && (
+              <p className="mt-1 text-xs text-red-600">
+                {errors.nombre.message}
+              </p>
+            )}
+          </div>
+
+          {/* Descripción */}
+          <div>
+            <label
+              htmlFor="descripcion"
+              className="mb-2 block text-sm font-semibold"
+            >
+              Descripción
+            </label>
+
+            <textarea
+              id="descripcion"
+              rows={3}
+              placeholder="Describe las características del artículo..."
+              {...register("descripcion")}
+              className="w-full resize-none rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-red-800"
+            />
+          </div>
+
+          {/* Categoría */}
+          <div>
+            <label
+              htmlFor="id_categoria"
+              className="mb-2 block text-sm font-semibold"
+            >
+              Categoría *
+            </label>
+
+            <select
+              id="id_categoria"
+              {...register("id_categoria")}
+              aria-invalid={!!errors.id_categoria}
+              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 outline-none focus:border-red-800"
+            >
+              <option value="0">Selecciona una categoría</option>
+
+              {categorias.map((categoria) => (
+                <option key={categoria.id} value={categoria.id}>
+                  {categoria.nombre}
+                </option>
+              ))}
+            </select>
+
+            {errors.id_categoria && (
+              <p className="mt-1 text-xs text-red-600">
+                {errors.id_categoria.message}
+              </p>
+            )}
+          </div>
+
+          {/* Precios */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
               <label
-                htmlFor="nombre-producto"
-                className="mb-2 block text-xs font-semibold text-ink-secondary"
+                htmlFor="precioCompra"
+                className="mb-2 block text-sm font-semibold"
               >
-                Nombre del producto
+                Precio de compra *
               </label>
 
               <input
-                id="nombre-producto"
-                {...register("nombre")}
-                placeholder="Ej. Mouse Logitech M185"
-                aria-invalid={!!errors.nombre}
-                className="
-                  w-full rounded border border-border-strong
-                  bg-white px-3 py-2.5 text-sm text-ink
-                  outline-none focus:border-primary
-                "
-              />
-
-              {errors.nombre && (
-                <p className="mt-1 text-xs text-danger">
-                  {errors.nombre.message}
-                </p>
-              )}
-            </div>
-
-            {/* Descripción */}
-            <div className="md:col-span-2">
-              <label
-                htmlFor="descripcion-producto"
-                className="mb-2 block text-xs font-semibold text-ink-secondary"
-              >
-                Descripción
-              </label>
-
-              <textarea
-                id="descripcion-producto"
-                {...register("descripcion")}
-                rows={3}
-                placeholder="Descripción del producto..."
-                className="
-                  w-full resize-none rounded border
-                  border-border-strong bg-white
-                  px-3 py-2.5 text-sm text-ink
-                  outline-none focus:border-primary
-                "
-              />
-            </div>
-
-            {/* Categoría */}
-            <div>
-              <label
-                htmlFor="categoria-producto"
-                className="mb-2 block text-xs font-semibold text-ink-secondary"
-              >
-                Categoría
-              </label>
-
-              <select
-                id="categoria-producto"
-                {...register("id_categoria", {
-                  valueAsNumber: true,
-                })}
-                aria-invalid={!!errors.id_categoria}
-                className="
-                  w-full rounded border border-border-strong
-                  bg-white px-3 py-2.5 text-sm text-ink
-                  outline-none focus:border-primary
-                "
-              >
-                <option value={0}>Selecciona una categoría</option>
-
-                {categorias.map((categoria) => (
-                  <option key={categoria.id} value={categoria.id}>
-                    {categoria.nombre}
-                  </option>
-                ))}
-              </select>
-
-              {errors.id_categoria && (
-                <p className="mt-1 text-xs text-danger">
-                  {errors.id_categoria.message}
-                </p>
-              )}
-            </div>
-
-            {/* Stock */}
-            <div>
-              <label
-                htmlFor="stock-producto"
-                className="mb-2 block text-xs font-semibold text-ink-secondary"
-              >
-                Stock inicial
-              </label>
-
-              <input
-                id="stock-producto"
+                id="precioCompra"
                 type="number"
-                min={0}
-                step={1}
-                {...register("stock", {
-                  valueAsNumber: true,
-                })}
-                aria-invalid={!!errors.stock}
-                className="
-                  w-full rounded border border-border-strong
-                  bg-white px-3 py-2.5 text-sm text-ink
-                  outline-none focus:border-primary
-                "
-              />
-
-              {errors.stock && (
-                <p className="mt-1 text-xs text-danger">
-                  {errors.stock.message}
-                </p>
-              )}
-            </div>
-
-            {/* Precio compra */}
-            <div>
-              <label
-                htmlFor="precio-compra"
-                className="mb-2 block text-xs font-semibold text-ink-secondary"
-              >
-                Precio de compra (MXN)
-              </label>
-
-              <input
-                id="precio-compra"
-                type="number"
-                min={0}
+                min="0"
                 step="0.01"
-                {...register("precioCompra", {
-                  valueAsNumber: true,
-                })}
-                aria-invalid={!!errors.precioCompra}
-                className="
-                  w-full rounded border border-border-strong
-                  bg-white px-3 py-2.5 text-sm text-ink
-                  outline-none focus:border-primary
-                "
+                {...register("precioCompra")}
+                className="w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-red-800"
               />
 
               {errors.precioCompra && (
-                <p className="mt-1 text-xs text-danger">
+                <p className="mt-1 text-xs text-red-600">
                   {errors.precioCompra.message}
                 </p>
               )}
             </div>
 
-            {/* Precio venta */}
             <div>
               <label
-                htmlFor="precio-venta"
-                className="mb-2 block text-xs font-semibold text-ink-secondary"
+                htmlFor="precioVenta"
+                className="mb-2 block text-sm font-semibold"
               >
-                Precio de venta (MXN)
+                Precio de venta *
               </label>
 
               <input
-                id="precio-venta"
+                id="precioVenta"
                 type="number"
-                min={0.01}
+                min="0.01"
                 step="0.01"
-                {...register("precioVenta", {
-                  valueAsNumber: true,
-                })}
-                aria-invalid={!!errors.precioVenta}
-                className="
-                  w-full rounded border border-border-strong
-                  bg-white px-3 py-2.5 text-sm text-ink
-                  outline-none focus:border-primary
-                "
+                {...register("precioVenta")}
+                className="w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-red-800"
               />
 
               {errors.precioVenta && (
-                <p className="mt-1 text-xs text-danger">
+                <p className="mt-1 text-xs text-red-600">
                   {errors.precioVenta.message}
                 </p>
               )}
             </div>
           </div>
 
+          {/* Stock */}
+          <div>
+            <label htmlFor="stock" className="mb-2 block text-sm font-semibold">
+              Stock inicial *
+            </label>
+
+            <input
+              id="stock"
+              type="number"
+              min="0"
+              step="1"
+              {...register("stock")}
+              className="w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-red-800"
+            />
+
+            {errors.stock && (
+              <p className="mt-1 text-xs text-red-600">
+                {errors.stock.message}
+              </p>
+            )}
+          </div>
+
           {/* Acciones */}
-          <div className="flex justify-end gap-3 border-t border-border-ui bg-surface-muted px-6 py-4">
-            <Boton
-              variante="outline"
+          <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">
+            <button
               type="button"
               onClick={onCerrar}
-              disabled={guardando}
+              disabled={procesando}
+              className="rounded-lg border border-slate-200 px-5 py-3 text-sm font-semibold hover:bg-slate-50 disabled:opacity-50"
             >
               Cancelar
-            </Boton>
+            </button>
 
-            <Boton type="submit" disabled={guardando}>
-              <Save size={17} />
-              {guardando
+            <button
+              type="submit"
+              disabled={procesando}
+              className="flex items-center gap-2 rounded-lg bg-red-800 px-5 py-3 text-sm font-semibold text-white hover:bg-red-900 disabled:opacity-50"
+            >
+              <Save size={18} />
+
+              {procesando
                 ? "Guardando..."
-                : articulo
+                : producto
                   ? "Guardar cambios"
                   : "Crear producto"}
-            </Boton>
+            </button>
           </div>
         </form>
-      </div>
+      </section>
     </div>
   );
 }

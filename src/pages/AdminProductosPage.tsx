@@ -5,6 +5,9 @@ import { useArticulosStore } from "../store/useArticulosStore";
 import { TablaProductos } from "../components/productos/TablaProductos";
 import type { ArticuloAdmin } from "../types/articulo";
 import { useCategoriasStore } from "../store/useCategoriasStore";
+import toast from "react-hot-toast";
+import { FormularioProducto } from "../components/productos/FormularioProducto";
+import type { ArticuloFormulario } from "../schemas/articulo.schema";
 
 export default function AdminProductosPage() {
   const articulos = useArticulosStore((s) => s.articulos);
@@ -16,7 +19,8 @@ export default function AdminProductosPage() {
 
   const categorias = useCategoriasStore((s) => s.categorias);
   const cargarCategorias = useCategoriasStore((s) => s.cargarCategorias);
-
+  const crearArticulo = useArticulosStore((s) => s.crearArticulo);
+  const actualizarArticulo = useArticulosStore((s) => s.actualizarArticulo);
   const [busqueda, setBusqueda] = useState("");
   const [categoriaId, setCategoriaId] = useState("");
   const [productoSeleccionado, setProductoSeleccionado] =
@@ -50,7 +54,39 @@ export default function AdminProductosPage() {
     setProductoSeleccionado(articulo);
     setModalAbierto(true);
   };
+  const manejarCrear = async (datos: ArticuloFormulario) => {
+    try {
+      await crearArticulo(datos);
 
+      toast.success("Producto creado correctamente");
+
+      setModalAbierto(false);
+    } catch {
+      toast.error("No fue posible crear el producto");
+    }
+  };
+  const manejarGuardar = async (datos: ArticuloFormulario) => {
+    try {
+      if (productoSeleccionado) {
+        await actualizarArticulo(productoSeleccionado.id, datos);
+
+        toast.success("Producto actualizado correctamente");
+      } else {
+        await crearArticulo(datos);
+
+        toast.success("Producto creado correctamente");
+      }
+
+      setModalAbierto(false);
+      setProductoSeleccionado(null);
+    } catch {
+      toast.error(
+        productoSeleccionado
+          ? "No fue posible actualizar el producto"
+          : "No fue posible crear el producto",
+      );
+    }
+  };
   const manejarEliminar = async (articulo: ArticuloAdmin) => {
     const confirmado = window.confirm(`¿Deseas eliminar "${articulo.nombre}"?`);
 
@@ -149,25 +185,16 @@ export default function AdminProductosPage() {
 
       {/* Aquí integraremos FormularioProducto */}
       {modalAbierto && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-          <p className="font-medium text-red-900">
-            {productoSeleccionado
-              ? `Editar: ${productoSeleccionado.nombre}`
-              : "Nuevo producto"}
-          </p>
-
-          <p className="mt-1 text-sm text-red-700">
-            Aquí conectaremos el formulario de productos.
-          </p>
-
-          <button
-            type="button"
-            onClick={() => setModalAbierto(false)}
-            className="mt-3 text-sm font-medium text-red-800 underline"
-          >
-            Cerrar
-          </button>
-        </div>
+        <FormularioProducto
+          producto={productoSeleccionado}
+          categorias={categorias}
+          guardando={guardando}
+          onCerrar={() => {
+            setModalAbierto(false);
+            setProductoSeleccionado(null);
+          }}
+          onGuardar={manejarGuardar}
+        />
       )}
     </div>
   );

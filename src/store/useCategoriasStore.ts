@@ -1,11 +1,8 @@
 import { create } from "zustand";
-import { categoriasService } from "../services/categorias";
+import { AxiosError } from "axios";
 
-import type {
-  Categoria,
-  CrearCategoriaDTO,
-  ActualizarCategoriaDTO,
-} from "../types/categoria";
+import { categoriasService } from "../services/categorias";
+import type { Categoria, CrearCategoriaDTO } from "../types/categoria";
 
 interface CategoriasState {
   categorias: Categoria[];
@@ -15,11 +12,26 @@ interface CategoriasState {
 
   cargarCategorias: () => Promise<void>;
   crearCategoria: (datos: CrearCategoriaDTO) => Promise<void>;
-  actualizarCategoria: (
-    id: number,
-    datos: ActualizarCategoriaDTO,
-  ) => Promise<void>;
-  eliminarCategoria: (id: number) => Promise<void>;
+  limpiarError: () => void;
+}
+
+function obtenerMensajeError(
+  error: unknown,
+  mensajePredeterminado: string,
+): string {
+  if (error instanceof AxiosError) {
+    const mensaje = error.response?.data?.message;
+
+    if (typeof mensaje === "string") {
+      return mensaje;
+    }
+
+    if (Array.isArray(mensaje)) {
+      return mensaje.join(", ");
+    }
+  }
+
+  return mensajePredeterminado;
 }
 
 export const useCategoriasStore = create<CategoriasState>()((set, get) => ({
@@ -29,63 +41,49 @@ export const useCategoriasStore = create<CategoriasState>()((set, get) => ({
   error: null,
 
   cargarCategorias: async () => {
-    set({ cargando: true, error: null });
+    set({
+      cargando: true,
+      error: null,
+    });
 
     try {
       const categorias = await categoriasService.getTodas();
+
       set({ categorias });
-    } catch {
+    } catch (error) {
       set({
-        error: "No fue posible cargar las categorías.",
+        error: obtenerMensajeError(
+          error,
+          "No fue posible cargar las categorías.",
+        ),
       });
+
+      throw error;
     } finally {
       set({ cargando: false });
     }
   },
 
   crearCategoria: async (datos) => {
-    set({ cargando: true, error: null });
+    set({
+      guardando: true,
+      error: null,
+    });
 
     try {
       await categoriasService.crear(datos);
-      await get().cargarCategorias();
-    } catch (error) {
-      set({ error: "No fue posible crear la categoría." });
-      throw error;
-    } finally {
-      set({ cargando: false });
-    }
-  },
 
-  actualizarCategoria: async (id, datos) => {
-    set({ cargando: true, error: null });
-
-    try {
-      await categoriasService.actualizar(id, datos);
       await get().cargarCategorias();
     } catch (error) {
       set({
-        error: "No fue posible actualizar la categoría.",
+        error: obtenerMensajeError(error, "No fue posible crear la categoría."),
       });
+
       throw error;
     } finally {
-      set({ cargando: false });
+      set({ guardando: false });
     }
   },
 
-  eliminarCategoria: async (id) => {
-    set({ cargando: true, error: null });
-
-    try {
-      await categoriasService.eliminar(id);
-      await get().cargarCategorias();
-    } catch (error) {
-      set({
-        error: "No fue posible eliminar la categoría.",
-      });
-      throw error;
-    } finally {
-      set({ cargando: false });
-    }
-  },
+  limpiarError: () => set({ error: null }),
 }));

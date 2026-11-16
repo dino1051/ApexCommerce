@@ -334,19 +334,6 @@ export default function CheckoutPage() {
           )}
         </aside>
       </div>
-
-      {/* Preparación del DTO */}
-      {import.meta.env.DEV && (
-        <details className="rounded-xl border border-[#ebe7e6] bg-white p-5">
-          <summary className="cursor-pointer font-semibold text-[#131b2e]">
-            Vista de desarrollo: DTO del pedido
-          </summary>
-
-          <pre className="mt-4 overflow-x-auto rounded-lg bg-[#131b2e] p-4 text-xs text-white">
-            {JSON.stringify(pedidoDTO, null, 2)}
-          </pre>
-        </details>
-      )}
     </div>
   );
 }

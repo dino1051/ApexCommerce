@@ -11,6 +11,23 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useDashboard } from "../hooks/useDashboard";
+import type { EstadoPedidoWeb } from "../types/dashboard";
+
+const nombresEstadoPedido: Record<EstadoPedidoWeb, string> = {
+  PENDIENTE: "Pendiente",
+  PAGADO: "Pagado",
+  EN_CAMINO: "En camino",
+  ENTREGADO: "Entregado",
+  CANCELADO: "Cancelado",
+};
+
+const estilosEstadoPedido: Record<EstadoPedidoWeb, string> = {
+  PENDIENTE: "bg-amber-100 text-amber-700",
+  PAGADO: "bg-blue-100 text-blue-700",
+  EN_CAMINO: "bg-purple-100 text-purple-700",
+  ENTREGADO: "bg-green-100 text-green-700",
+  CANCELADO: "bg-red-100 text-red-700",
+};
 
 export function AdminDashboardPage() {
   const {
@@ -21,6 +38,9 @@ export function AdminDashboardPage() {
     cargando,
     error,
     recargar,
+    pedidosRecientes,
+    cargandoPedidosRecientes,
+    errorPedidosRecientes,
   } = useDashboard();
 
   const formatoMoneda = (valor: string | number) =>
@@ -233,12 +253,12 @@ export function AdminDashboardPage() {
               />
 
               <QuickAction
-                ruta="/admin/pedidos"
+                ruta="/admin/ventas-web"
                 icono={Truck}
                 titulo="Pedidos"
               />
 
-              <QuickAction ruta="/admin/caja" icono={Wallet} titulo="Caja" />
+              <QuickAction ruta="/admin/cajas" icono={Wallet} titulo="Cajas" />
             </div>
           </div>
         </section>
@@ -246,18 +266,20 @@ export function AdminDashboardPage() {
         {/* PEDIDOS Y STOCK */}
         <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* PEDIDOS */}
-          <div className="bg-white rounded-xl shadow-sm border border-[#ebe7e6] overflow-hidden">
-            <div className="p-5 flex items-center justify-between border-b border-[#ebe7e6]">
-              <div>
-                <h2 className="font-bold text-lg">Pedidos recientes</h2>
 
-                <p className="text-sm text-[#59413e]">
-                  Pedidos generados desde la tienda.
+          {/* PEDIDOS RECIENTES */}
+          <div className="overflow-hidden rounded-xl border border-[#ebe7e6] bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-[#ebe7e6] p-5">
+              <div>
+                <h2 className="text-lg font-bold">Pedidos recientes</h2>
+
+                <p className="mt-0.5 text-sm text-[#59413e]">
+                  Últimos 5 pedidos de la tienda web.
                 </p>
               </div>
 
               <Link
-                to="/admin/pedidos"
+                to="/admin/ventas-web"
                 className="text-xs font-bold text-[#760009] hover:underline"
               >
                 Ver pedidos
@@ -265,11 +287,67 @@ export function AdminDashboardPage() {
             </div>
 
             <div className="p-5">
-              <EmptyState
-                icono={Truck}
-                titulo="Sin pedidos recientes"
-                descripcion="Los pedidos de la tienda aparecerán aquí."
-              />
+              {cargandoPedidosRecientes && pedidosRecientes.length === 0 ? (
+                <div className="flex items-center justify-center gap-2 py-10 text-sm text-[#59413e]">
+                  <RefreshCw size={18} className="animate-spin" />
+                  Cargando pedidos...
+                </div>
+              ) : errorPedidosRecientes && pedidosRecientes.length === 0 ? (
+                <EmptyState
+                  icono={Truck}
+                  titulo="No se pudieron cargar los pedidos"
+                  descripcion={errorPedidosRecientes}
+                />
+              ) : pedidosRecientes.length === 0 ? (
+                <EmptyState
+                  icono={Truck}
+                  titulo="Sin pedidos recientes"
+                  descripcion="Los pedidos de la tienda aparecerán aquí."
+                />
+              ) : (
+                <div className="divide-y divide-[#ebe7e6]">
+                  {pedidosRecientes.map((pedido) => (
+                    <div
+                      key={pedido.id}
+                      className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      {/* Información del pedido */}
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-[#131b2e]">
+                          Pedido #{pedido.id}
+                        </p>
+
+                        <p className="mt-1 truncate text-xs text-[#59413e]">
+                          {pedido.usuario.nombre} {pedido.usuario.apellido}
+                        </p>
+
+                        <p className="mt-1 text-xs text-[#897b78]">
+                          {new Date(pedido.fecha).toLocaleString("es-MX", {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                            timeZone: "America/Mexico_City",
+                          })}
+                        </p>
+                      </div>
+
+                      {/* Total y estado */}
+                      <div className="flex shrink-0 items-center justify-between gap-4 sm:flex-col sm:items-end sm:gap-2">
+                        <p className="text-sm font-bold text-[#131b2e]">
+                          {formatoMoneda(pedido.total)}
+                        </p>
+
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                            estilosEstadoPedido[pedido.estadoweb]
+                          }`}
+                        >
+                          {nombresEstadoPedido[pedido.estadoweb]}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -354,7 +432,7 @@ export function AdminDashboardPage() {
               </div>
 
               <div>
-                <h2 className="font-bold">Caja</h2>
+                <h2 className="font-bold">Cajas</h2>
 
                 <p className="text-sm text-[#59413e] mt-0.5">
                   Consulta el estado de la caja y realiza la apertura o cierre.
@@ -363,10 +441,10 @@ export function AdminDashboardPage() {
             </div>
 
             <Link
-              to="/admin/caja"
+              to="/admin/cajas"
               className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-[#991b1b] text-[#760009] hover:bg-[#fdf0f0] rounded-lg text-sm font-bold transition-colors"
             >
-              Administrar caja
+              Administrar cajas
               <ArrowRight size={18} />
             </Link>
           </div>

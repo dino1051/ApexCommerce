@@ -28,3 +28,10 @@ export const ventasWebService = {
     });
   },
 };
+export const obtenerPedidosRecientes = async (): Promise<VentaWeb[]> => {
+  const { data } = await api.get<VentaWeb[]>("/ventas-web");
+
+  return [...data]
+    .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+    .slice(0, 5);
+};

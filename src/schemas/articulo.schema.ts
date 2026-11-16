@@ -1,20 +1,34 @@
 import { z } from "zod";
 
 export const articuloSchema = z.object({
-  nombre: z.string().trim().min(1, "El nombre es obligatorio"),
+  nombre: z
+    .string()
+    .trim()
+    .min(3, "El nombre debe tener al menos 3 caracteres."),
 
   descripcion: z.string(),
 
-  stock: z
-    .number()
-    .int("El stock debe ser un número entero")
-    .min(0, "El stock no puede ser negativo"),
+  id_categoria: z.coerce
+    .number<number>()
+    .int("Selecciona una categoría válida.")
+    .positive("Debes seleccionar una categoría."),
 
-  precioVenta: z.number().positive("El precio de venta debe ser mayor a 0"),
+  precioCompra: z.coerce
+    .number<number>()
+    .finite("Ingresa un precio válido.")
+    .min(0, "El precio de compra no puede ser negativo."),
 
-  precioCompra: z.number().min(0, "El precio de compra no puede ser negativo"),
+  precioVenta: z.coerce
+    .number<number>()
+    .finite("Ingresa un precio válido.")
+    .positive("El precio de venta debe ser mayor a cero."),
 
-  id_categoria: z.number().int().positive("Selecciona una categoría"),
+  stock: z.coerce
+    .number<number>()
+    .int("El stock debe ser un número entero.")
+    .min(0, "El stock no puede ser negativo."),
 });
 
-export type ArticuloFormulario = z.infer<typeof articuloSchema>;
+export type ArticuloFormularioEntrada = z.input<typeof articuloSchema>;
+
+export type ArticuloFormulario = z.output<typeof articuloSchema>;

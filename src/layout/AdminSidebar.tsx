@@ -57,16 +57,6 @@ const operaciones: OpcionMenu[] = [
     icono: ReceiptText,
   },
   {
-    nombre: "Pedidos",
-    ruta: "/admin/pedidos",
-    icono: Truck,
-  },
-  {
-    nombre: "Caja",
-    ruta: "/admin/caja",
-    icono: Wallet,
-  },
-  {
     nombre: "Cajas",
     ruta: "/admin/cajas",
     icono: Wallet,

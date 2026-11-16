@@ -1,11 +1,6 @@
 import { api } from "../lib/axios";
-
-import type {
-  ArticuloPublico,
-  ArticuloAdmin,
-  CrearArticuloDTO,
-  ActualizarArticuloDTO,
-} from "../types/articulo";
+import type { ArticuloPublico, ArticuloAdmin } from "../types/articulo";
+import type { ArticuloFormulario } from "../schemas/articulo.schema";
 
 export const articulosService = {
   // Catálogo público
@@ -29,17 +24,20 @@ export const articulosService = {
     return data;
   },
 
-  crear: async (datos: CrearArticuloDTO): Promise<ArticuloAdmin> => {
-    const { data } = await api.post<ArticuloAdmin>("/articulos", datos);
+  crear: async (datos: ArticuloFormulario) => {
+    const { data } = await api.post("/articulos", {
+      ...datos,
+      descripcion: datos.descripcion.trim() || undefined,
+    });
 
     return data;
   },
 
-  actualizar: async (
-    id: number,
-    datos: ActualizarArticuloDTO,
-  ): Promise<ArticuloAdmin> => {
-    const { data } = await api.patch<ArticuloAdmin>(`/articulos/${id}`, datos);
+  actualizar: async (id: number, datos: ArticuloFormulario) => {
+    const { data } = await api.patch(`/articulos/${id}`, {
+      ...datos,
+      descripcion: datos.descripcion.trim() || null,
+    });
 
     return data;
   },

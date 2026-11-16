@@ -1,11 +1,8 @@
 import { create } from "zustand";
 import { articulosService } from "../services/articulos";
 
-import type {
-  ArticuloAdmin,
-  CrearArticuloDTO,
-  ActualizarArticuloDTO,
-} from "../types/articulo";
+import type { ArticuloAdmin } from "../types/articulo";
+import type { ArticuloFormulario } from "../schemas/articulo.schema";
 
 interface ArticulosState {
   articulos: ArticuloAdmin[];
@@ -14,11 +11,8 @@ interface ArticulosState {
   error: string | null;
 
   cargarArticulos: () => Promise<void>;
-  crearArticulo: (datos: CrearArticuloDTO) => Promise<void>;
-  actualizarArticulo: (
-    id: number,
-    datos: ActualizarArticuloDTO,
-  ) => Promise<void>;
+  crearArticulo: (datos: ArticuloFormulario) => Promise<void>;
+  actualizarArticulo: (id: number, datos: ArticuloFormulario) => Promise<void>;
   eliminarArticulo: (id: number) => Promise<void>;
 }
 
@@ -43,30 +37,48 @@ export const useArticulosStore = create<ArticulosState>()((set, get) => ({
   },
 
   crearArticulo: async (datos) => {
-    set({ guardando: true, error: null });
+    set({
+      guardando: true,
+      error: null,
+    });
 
     try {
       await articulosService.crear(datos);
+
       await get().cargarArticulos();
     } catch (error) {
-      set({ error: "No fue posible crear el artículo." });
+      set({
+        error: "No fue posible crear el producto.",
+      });
+
       throw error;
     } finally {
-      set({ guardando: false });
+      set({
+        guardando: false,
+      });
     }
   },
 
   actualizarArticulo: async (id, datos) => {
-    set({ guardando: true, error: null });
+    set({
+      guardando: true,
+      error: null,
+    });
 
     try {
       await articulosService.actualizar(id, datos);
+
       await get().cargarArticulos();
     } catch (error) {
-      set({ error: "No fue posible actualizar el artículo." });
+      set({
+        error: "No fue posible actualizar el producto.",
+      });
+
       throw error;
     } finally {
-      set({ guardando: false });
+      set({
+        guardando: false,
+      });
     }
   },
 

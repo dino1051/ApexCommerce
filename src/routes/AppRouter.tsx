@@ -20,6 +20,8 @@ import CheckoutPage from "../pages/tienda/CheckoutPage";
 import MisPedidosPage from "../pages/tienda/MisPedidosPage";
 import TiendaInicioPage from "../pages/tienda/TiendaInicioPage";
 import ProductoDetallePage from "../pages/tienda/ProductoDetallePag";
+import AdminCategoriasPage from "../pages/AdminCategoriasPage";
+import AdminVentasPage from "../pages/AdminVentasPage";
 
 export default function AppRouter() {
   return (
@@ -50,8 +52,10 @@ export default function AppRouter() {
             />
             <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
             <Route path="/admin/productos" element={<AdminProductosPage />} />
+            <Route path="/admin/categorias" element={<AdminCategoriasPage />} />
             <Route path="/admin/pos" element={<PosPage />} />
             <Route path="/admin/cajas" element={<AdminCajasPage />} />
+            <Route path="/admin/ventas" element={<AdminVentasPage />} />
             <Route path="/admin/ventas-web" element={<AdminVentasWebPage />} />
             <Route
               path="/admin/cajas/historial"
