@@ -328,7 +328,7 @@ export default function LoginPage() {
                 </div>
 
                 <Link
-                  to="/registro"
+                  to="/register"
                   className="
                     flex w-full items-center justify-center
                     gap-1.5 rounded-lg border border-border-ui

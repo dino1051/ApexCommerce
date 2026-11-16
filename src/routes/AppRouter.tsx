@@ -22,6 +22,7 @@ import TiendaInicioPage from "../pages/tienda/TiendaInicioPage";
 import ProductoDetallePage from "../pages/tienda/ProductoDetallePag";
 import AdminCategoriasPage from "../pages/AdminCategoriasPage";
 import AdminVentasPage from "../pages/AdminVentasPage";
+import RegisterPage from "../pages/RegisterPage";
 
 export default function AppRouter() {
   return (
@@ -29,6 +30,7 @@ export default function AppRouter() {
       <Routes>
         {/* Ruta pública */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/tienda" element={<TiendaLayout />}>
           <Route index element={<TiendaInicioPage />} />
           <Route path="productos" element={<ProductosPage />} />

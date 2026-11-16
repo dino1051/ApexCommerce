@@ -1,5 +1,5 @@
 import { api } from "../lib/axios";
-import type { UsuarioAuth } from "../types/auth";
+import type { RegisterDTO, UsuarioAuth } from "../types/auth";
 
 import type { LoginDTO, LoginResponse } from "../types/auth";
 
@@ -14,4 +14,7 @@ export const authService = {
 
     return data;
   },
+};
+export const registrarUsuario = async (datos: RegisterDTO): Promise<void> => {
+  await api.post("/auth/register", datos);
 };

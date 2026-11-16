@@ -17,3 +17,10 @@ export interface LoginResponse {
   access_token: string;
   usuario: UsuarioAuth;
 }
+
+export interface RegisterDTO {
+  nombre: string;
+  apellido: string;
+  email: string;
+  password: string;
+}
