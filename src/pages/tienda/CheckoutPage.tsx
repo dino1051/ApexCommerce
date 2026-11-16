@@ -16,15 +16,6 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { useCarritoWebStore } from "../../store/useCarritoWebStore";
 import { tiendaService } from "../../services/tienda";
 
-interface DetallePedidoDTO {
-  id_articulo: number;
-  cantidadArticulos: number;
-}
-
-interface CrearPedidoDTO {
-  detalles: DetallePedidoDTO[];
-}
-
 const moneda = (valor: number | string) =>
   new Intl.NumberFormat("es-MX", {
     style: "currency",
