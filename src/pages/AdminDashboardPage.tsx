@@ -72,7 +72,7 @@ export function AdminDashboardPage() {
           </button>
 
           <Link
-            to="/admin/pos"
+            to="/admin/cajas"
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#991b1b] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#760009]"
           >
             <Monitor size={19} />
